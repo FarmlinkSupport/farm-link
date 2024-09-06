@@ -37,5 +37,14 @@ class ContractBlockchain(models.Model):
     hash_key=models.CharField(max_length=100)
 
     def __str__(self):
-        return self.name
+        return str(self.contract.id)
+    
+class ContractDeployment(models.Model):
+    contract=models.OneToOneField(Contract,on_delete=models.CASCADE,related_name='deploy_contract')
+    farmeragreed=models.BooleanField(default=False)
+    buyeragreed=models.BooleanField(default=False)
+    deploy_status=models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.contract.id)
 
