@@ -12,11 +12,12 @@ class Contract(models.Model):
 
     PAYMENT_CHOICES = (
         ('Pending', 'Pending'),
+        ('Buyer Paid', 'Buyer Paid'),
         ('Completed', 'Completed'),
         ('Failed', 'Failed')
     )
 
-    tender=models.ForeignKey(Tender,on_delete=models.CASCADE,related_name='contract_tender')
+    tender=models.OneToOneField(Tender,related_name='contract_tender',on_delete=models.CASCADE)
     buyer=models.ForeignKey(User,on_delete=models.CASCADE,related_name='contract_buyer')
     farmer=models.ForeignKey(User,on_delete=models.CASCADE,related_name='contract_farmer')
     contractfileipfs=models.CharField(max_length=100,null=True)
@@ -24,7 +25,6 @@ class Contract(models.Model):
     payment_status=models.CharField(choices=PAYMENT_CHOICES,default='Pending',max_length=20)
     start_date=models.DateField(auto_now=False, auto_now_add=False)
     end_date=models.DateField(auto_now=False, auto_now_add=False)
-    contract_hash=models.CharField(max_length=64)
     contract_value=models.DecimalField(max_digits=15, decimal_places=2)
     timestamp=models.DateTimeField(auto_now_add=True)
 
@@ -34,7 +34,6 @@ class Contract(models.Model):
 class ContractBlockchain(models.Model):
     contract=models.OneToOneField(Contract, on_delete=models.CASCADE, primary_key=True)
     blockchainaddress=models.CharField(max_length=100)
-    hash_key=models.CharField(max_length=100)
 
     def __str__(self):
         return str(self.contract.id)
@@ -47,4 +46,20 @@ class ContractDeployment(models.Model):
 
     def __str__(self):
         return str(self.contract.id)
+    
+class ContractDeliveryStatus(models.Model):
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Completed', 'Completed'),
+        ('Failed', 'Failed')
+    )
+
+    contract = models.OneToOneField(Contract, on_delete=models.CASCADE)
+    invoice_file = models.FileField(upload_to='invoices/', null=True, blank=True) 
+    buyer_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Contract {self.contract.id} - Status: {self.buyer_status}"
 

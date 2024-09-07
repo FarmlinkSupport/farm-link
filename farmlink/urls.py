@@ -26,6 +26,7 @@ urlpatterns = [
     path('buyer/',include('buyer.urls')),
     path('tender/',include('tender.urls')),
     path('draft/',include('draft.urls')),
-    
+    path('payment/',include('payment.urls')),
+    path('contract/',include('contract.urls'))
     
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

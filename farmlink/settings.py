@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'buyer',
     'tender',
     'draft',
-    'contract'
+    'contract',
+    'payment',
 ]
 
 MIDDLEWARE = [
@@ -149,7 +150,7 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=50),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -161,7 +162,18 @@ SIMPLE_JWT = {
     'USER_ID_CLAIM': 'user_id',
 }
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'sathyamk815@gmail.com'
+EMAIL_HOST_PASSWORD = 'mdbm aoph reyi xlom'
 
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5500/',
 ]
+
+STRIPE_PUBLISHABLE_KEY = 'pk_test_51Pw8CW04lyaD53gUawvZumEFzqntwuk5lr7CGGqlfBMr1OEUrqfwLmEMq4dmhmmgfs4k6IfCn1i74JnodubVQD4700GVLwISsf'
+STRIPE_SECRET_KEY = 'sk_test_51Pw8CW04lyaD53gUx4fyHl2Nb218nFl3ogW4S6PNRzFTSwtJ1D8vp7R2JRjru0vsdj73flNRBcKlIYYnLhIBgZYy00oSGuvSi6'
+
+PAYMENT_SITE_URL = 'http://127.0.0.1:5500/'
