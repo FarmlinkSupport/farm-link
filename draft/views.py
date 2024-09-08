@@ -18,6 +18,10 @@ class DraftCreateListView(views.APIView):
         serializer = DraftSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         tender_id = request.data['id']
+        tender= await sync_to_async(Tender.objects.get)(id=tender_id)
+        draft= await sync_to_async(Draft.objects.get)(tender=tender,farmer=request.user)
+        if draft is not None:
+            return Response({'Draft has already been posted!!'},status=status.HTTP_226_IM_USED)
         await sync_to_async(serializer.save)(tender_id=tender_id, user=request.user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
