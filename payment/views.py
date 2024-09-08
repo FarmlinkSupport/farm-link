@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.core.mail import send_mail
+import requests
 
 
 stripe.api_key=settings.STRIPE_SECRET_KEY
@@ -51,7 +52,7 @@ class PaymentCheckoutView(APIView):
                     },
                     mode='payment',
                     success_url=settings.PAYMENT_SITE_URL + f'/sucess/{contract.id}/',
-                    cancel_url=settings.PAYMENT_SITE_URL + '?canceled=true',
+                    cancel_url=settings.PAYMENT_SITE_URL + f'/cancel/',
                 )
                 return response.Response({'url': checkout_session.url}, status=status.HTTP_200_OK)
             else:
@@ -97,6 +98,8 @@ class PaymentSuccessStatusView(APIView):
                 recipient_list=[buyer_email],
                 fail_silently=False,
             )
+            r=requests.get(f'https://https://farmlinkbc.onrender.com/paymentsuccess/{contract_id}/')
+            print(r.json())
 
             return response.Response({'message': 'Payment marked as successful, and confirmation email sent!'}, status=status.HTTP_200_OK)
 
