@@ -29,7 +29,7 @@ class PaymentCheckoutView(APIView):
             if request.user != contract.buyer:
                 raise PermissionDenied('You are not authorized to access this page!')
             
-            if contract.payment_status == 'Pending' or contract.payment_status=='Failed':
+            if contract.payment_status == 'Pending' or contract.payment_status=='Failed' and contract.status=='Active':
                 contract_value_in_cents = int(contract.contract_value * 100)
 
                 checkout_session = stripe.checkout.Session.create(
@@ -51,8 +51,8 @@ class PaymentCheckoutView(APIView):
                         "contract_id": contract.id
                     },
                     mode='payment',
-                    success_url=settings.PAYMENT_SITE_URL + f'/sucess/{contract.id}/',
-                    cancel_url=settings.PAYMENT_SITE_URL + f'/cancel/',
+                    success_url=settings.PAYMENT_SITE_URL + f'payment/sucess/{contract.id}/',
+                    cancel_url=settings.PAYMENT_SITE_URL + f'payment/cancel/',
                 )
                 return response.Response({'url': checkout_session.url}, status=status.HTTP_200_OK)
             else:
@@ -71,7 +71,7 @@ class PaymentSuccessStatusView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     renderer_classes = [UserRenderer]
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         contract_id = self.kwargs['pk']
         try:
             contract = Contract.objects.get(id=contract_id)
@@ -107,5 +107,41 @@ class PaymentSuccessStatusView(APIView):
             return response.Response({'msg': 'Contract not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return response.Response({'msg': 'An error occurred', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+       
+class PaymentFailedStatusView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self,request,*args,**kwargs):
+        contract_id = self.kwargs['pk']
+        try:
+            contract = Contract.objects.get(id=contract_id)
+            if request.user != contract.buyer:
+                raise PermissionDenied('You are not authorized to mark this payment as successful!')
+
+            contract.payment_status = 'Failed'
+            contract.save()
+            buyer_email = contract.buyer.email
+            contract_value = contract.contract_value
+            contract_id = contract.id
+
+            send_mail(
+                subject="Contract Payment Successful",
+                message=f"Dear {contract.buyer.name},\n\n"
+                        f"Thank you for your payment. Your contract (ID: {contract_id}) has been Failed to deployed.\n"
+                        f"Contract Value: ₹{contract_value}\n\n"
+                        f"Please try agian to make payment.\n\n"
+                        f"Best regards,\n"
+                        f"FarmLink Team",
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[buyer_email],
+                fail_silently=True,
+            )
+
+            return response.Response({'message': 'Payment marked as Failed, and confirmation email sent!'}, status=status.HTTP_200_OK)
         
+        except Contract.DoesNotExist:
+            return response.Response({'msg': 'Contract not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return response.Response({'msg': 'An error occurred', 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
