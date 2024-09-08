@@ -29,7 +29,7 @@ class UserRegistrationView(APIView):
 class UserLoginView(APIView):
     renderer_classes = [UserRenderer]
 
-    async def post(self, request):
+    async def post(self, request,*args,**kwargs):
         print(request.data)
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
