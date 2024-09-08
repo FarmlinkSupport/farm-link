@@ -62,3 +62,13 @@ class TenderRetrieveUpdateDestroyView(views.APIView):
             raise PermissionDenied("You do not have permission to delete this tender.")
         await sync_to_async(tender.delete)()
         return Response({"message": "Tender deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+class TenderGetBuyerView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    async def get(self,request,*args,**kwargs):
+        tender = await sync_to_async(Tender.objects.filter)(company_id=request.user)
+        if tender is None:
+            return Response("User has no issued Tender",status=status.HTTP_204_NO_CONTENT)
+        serializer=TenderSerializer(tender,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
