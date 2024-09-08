@@ -17,7 +17,7 @@ def get_tokens_for_user(user):
 class UserRegistrationView(APIView):
     renderer_classes = [UserRenderer]
 
-    async def post(self, request, format=None):
+    async def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # Saving the user must stay synchronous due to Django ORM
@@ -29,7 +29,8 @@ class UserRegistrationView(APIView):
 class UserLoginView(APIView):
     renderer_classes = [UserRenderer]
 
-    async def post(self, request, format=None):
+    async def post(self, request):
+        print(request.data)
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.data.get('email')
