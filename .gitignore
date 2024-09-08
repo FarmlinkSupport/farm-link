@@ -2,3 +2,5 @@ templates
 login.py
 __pycache__
 venv/
+.env
+staticfiles/

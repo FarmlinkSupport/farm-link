@@ -9,24 +9,26 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-import os,dj_database_url
+
+import os
+import dj_database_url
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv  # To load environment variables
+
+# Load environment variables from .env file
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-i+yi9vjtksa2z&10_soe0mc5@k5bhx0_tdef7-imc9*s@ud)_e'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = []
-
+# Allowed hosts from the .env file, defaulting to an empty list
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 
 # Application definition
 
@@ -39,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'corsheaders',
     'accounts',
     'farmer',
     'buyer',
@@ -50,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
@@ -83,15 +87,9 @@ WSGI_APPLICATION = 'farmlink.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
+DATABASE_URL = os.environ.get('DATABASE_URL')
 DATABASES = {
-    "default":dj_database_url.config(default='postgresql://postgres:xxCLZgrenGVFMzOTJUmsbKouowsjohFC@junction.proxy.rlwy.net:46207/railway',conn_max_age=1800)
+    "default": dj_database_url.config(default=DATABASE_URL, conn_max_age=1800)
 }
 
 
@@ -133,7 +131,6 @@ AUTH_USER_MODEL = 'accounts.User'
 STATIC_URL = 'static/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 MEDIA_URL = "/media/"
 
 # Default primary key field type
@@ -142,38 +139,44 @@ MEDIA_URL = "/media/"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Simple JWT settings
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=50),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
-    'VERIFYING_KEY': None,
     'AUTH_HEADER_TYPES': ('Bearer',),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
 }
 
+# Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'sathyamk815@gmail.com'
-EMAIL_HOST_PASSWORD = 'mdbm aoph reyi xlom'
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
-CORS_ALLOWED_ORIGINS = [
-    'http://127.0.0.1:5500/',
-]
+# CORS settings
+CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "http://127.0.0.1:5500").split(",")
 
-STRIPE_PUBLISHABLE_KEY = 'pk_test_51Pw8CW04lyaD53gUawvZumEFzqntwuk5lr7CGGqlfBMr1OEUrqfwLmEMq4dmhmmgfs4k6IfCn1i74JnodubVQD4700GVLwISsf'
-STRIPE_SECRET_KEY = 'sk_test_51Pw8CW04lyaD53gUx4fyHl2Nb218nFl3ogW4S6PNRzFTSwtJ1D8vp7R2JRjru0vsdj73flNRBcKlIYYnLhIBgZYy00oSGuvSi6'
+# Stripe settings
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 
+# Custom payment site URL
 PAYMENT_SITE_URL = 'http://127.0.0.1:5500/'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
