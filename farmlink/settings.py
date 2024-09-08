@@ -180,3 +180,5 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 PAYMENT_SITE_URL = 'http://127.0.0.1:5500/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+CORS_ALLOW_ALL_ORIGINS = True
