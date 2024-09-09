@@ -17,5 +17,5 @@ class Draft(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.farmer.id} -> {self.tender.id}'
+        return f'{self.farmer.name} -> {self.tender.title}'
 

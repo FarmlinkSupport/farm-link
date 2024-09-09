@@ -5,6 +5,7 @@ from accounts.renderers import UserRenderer
 from .serializers import BuyerProfileSerializer
 from accounts.serializers import UserProfileSerializer
 from .models import Profile
+from accounts.models import User
 from rest_framework.generics import RetrieveAPIView
 
 class BuyerProfileView(APIView):
@@ -23,17 +24,17 @@ class BuyerProfileView(APIView):
         user_serializer = UserProfileSerializer(request.user)
         return Response({'user': user_serializer.data, 'profile': serializer.data}, status=status.HTTP_200_OK)
 
-class BuyerProfileDetailView(RetrieveAPIView):
+class BuyerProfileDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     renderer_classes = [UserRenderer]
-    serializer_class = BuyerProfileSerializer
-    lookup_field = 'user__id'
-
-    def get_queryset(self):
-        return Profile.objects.filter(user=self.request.user)
-
-    def retrieve(self, request, *args, **kwargs):
-        buyer_profile = self.get_queryset().first()
-        serializer = self.get_serializer(buyer_profile)
-        user_serializer = UserProfileSerializer(request.user)
-        return Response({'user': user_serializer.data, 'profile': serializer.data}, status=status.HTTP_200_OK)
+    
+    def get(self,request,user_id,*args,**kwargs):
+        user = User.objects.get(id=user_id)
+        if user is None:
+            return Response('User not found',status=status.HTTP_404_NOT_FOUND)
+        serializer = UserProfileSerializer(user)
+        profile = Profile.objects.get(user=user)
+        profile_serializer = BuyerProfileSerializer(profile)
+        if profile_serializer.data is None:
+            profile_serializer.data =[]
+        return Response([serializer.data,profile_serializer.data],status=status.HTTP_200_OK)
