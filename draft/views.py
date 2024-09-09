@@ -16,16 +16,15 @@ class DraftCreateListView(views.APIView):
             return HttpResponse('You are not authorized to view this page content')
         serializer=DraftSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        tender_id=request.data['id']
+        tender_id=self.kwargs['tender_id']
         draft=serializer.save(tender_id=tender_id,user=request.user)
         return Response(draft,status=status.HTTP_201_CREATED)
     
     def get(self,request,*args,**kwargs):
-        id=request.data.get('id')
+        id=self.kwargs['tender_id']
         tender=Tender.objects.get(id=id)
         drafts=Draft.objects.filter(tender=tender)
         serializer=DraftGetSerializer(drafts,many=True)
-        print(serializer.data)
         return Response(serializer.data,status=status.HTTP_200_OK)
     
 class DraftUpdateRetrieveDestroyView(views.APIView):
