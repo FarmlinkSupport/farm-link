@@ -91,3 +91,13 @@ class ContractGetView(APIView):
                 return Response(serializer.data,status=status.HTTP_200_OK)
         except:
             return Response('User has no contract !!',status=status.HTTP_204_NO_CONTENT)
+
+class ContractDeclineView(APIView):
+    permission_classes=[permissions.IsAuthenticated]
+
+    def post(self,request,id,*args,**kwargs):
+        contract=Contract.objects.get(id=id)
+        if contract is not None:
+            contract.status="Terminated"
+            contract.save()
+            return Response('Contract has been declined successfully',status=status.HTTP_202_ACCEPTED)
