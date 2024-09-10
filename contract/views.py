@@ -8,6 +8,7 @@ from accounts.renderers import UserRenderer
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from payment.models import Payment
+import stripe
 
 class ContractDeliveryStatusView(APIView):
     permission_classes=[permissions.IsAuthenticated]
@@ -31,8 +32,8 @@ class ContractDeliveryStatusView(APIView):
             return Response(f'Payment has not been yet for the contract id : {id}',status=status.HTTP_402_PAYMENT_REQUIRED)
     
     def put(self,request,id,*args,**kwargs):
-        contract=Contract.objects.get(id=id)
         try:
+            contract=Contract.objects.get(id=id)
             pay=Payment.objects.get(contract=contract)
             if contract is None:
                 return Response({'msg':"Contract doesn't exists!!"},status=status.HTTP_404_NOT_FOUND)
@@ -43,7 +44,19 @@ class ContractDeliveryStatusView(APIView):
                 return Response({'msg':"Contract delivery data doesn't exists!!"},status=status.HTTP_404_NOT_FOUND)
             serializer=ContractDeliverySerializerStatus(delivery,data=request.data)
             serializer.save()
-            print(serializer.data)
+            if serializer.data['buyer_status'] == "Completed" and contract.status != "Completed":
+                pay=Payment.objects.get(contract=contract)
+                payment_intent=stripe.PaymentIntent.retrieve(pay.payment_intent)
+                transfer = stripe.Transfer.create(
+                    amount=payment_intent.amount_received,  
+                    currency=payment_intent.currency,       
+                    destination="acct_1PxU5xP0UyL2PaGn",                
+                    transfer_group=payment_intent.transfer_group 
+                )
+                contract.payment_status="Completed"
+                contract.status="Completed"
+                contract.save()
+
             return Response({'message':'Contract Delivery Status has been changed successfully!'},status=status.HTTP_202_ACCEPTED)
         except Exception as e:
             return Response(f'Payment has not been yet for the contract id : {id}',status=status.HTTP_402_PAYMENT_REQUIRED)

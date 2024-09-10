@@ -3,3 +3,4 @@ login.py
 __pycache__
 venv/
 .env
+account_farmer.py
