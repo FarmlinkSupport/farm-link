@@ -5,7 +5,8 @@ from contract.models import Contract
 class Payment(models.Model):
     contract=models.OneToOneField(Contract, on_delete=models.CASCADE)
     payment_date=models.DateTimeField(auto_now_add=True)
-    payment_method=models.CharField(max_length=30,null=True,blank=True)
+    payment_intent_id=models.CharField(max_length=50)
+    payment_method_type=models.CharField(max_length=30)
 
     def __str__(self):
         return f'{self.contract.id} -> {self.id}'

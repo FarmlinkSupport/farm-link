@@ -67,3 +67,41 @@ class PaymentCheckoutView(APIView):
 
 
 
+@csrf_exempt
+def stripe_webhook_view(request):
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+ 
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_KEY
+        )
+    except ValueError as e:
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        return HttpResponse(status=400)
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        customer_email = session["customer_details"]["email"]
+        id=session["metadata"]["contract_id"]
+        contract=Contract.objects.get(id=id)
+        contract.payment_status="Buyer Paid"
+        contract.save()
+        payment=Payment.objects.create(contract=contract,payment_intent_id=session["payment_intent"],payment_method_type=session['payment_method_types'][0])
+        payment.save()
+        send_mail(
+                subject="Contract Payment Successful",
+                message=f"Dear {contract.buyer.name},\n\n"
+                        f"Thank you for your payment. Your contract (ID: {contract.contract_id}) has been successfully deployed.\n"
+                        f"Contract Value: ₹{contract.contract_value}\n\n"
+                        f"We appreciate your trust and business.\n\n"
+                        f"Best regards,\n"
+                        f"FarmLink Team",
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[customer_email],
+                fail_silently=False,
+            )
+ 
+    return HttpResponse(status=200)
