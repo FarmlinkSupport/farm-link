@@ -7,7 +7,9 @@ from accounts.renderers import UserRenderer
 from rest_framework.response import Response
 from accounts.serializers import UserProfileSerializer
 from .models import Farmer
+from contract.models import Contract,ContractDeployment
 from rest_framework.generics import RetrieveAPIView
+from contract.serializers import ContractDeliveryGet
 
 class FarmerProfileView(APIView):
     permission_classes=[permissions.IsAuthenticated]
@@ -39,3 +41,19 @@ class FarmerProfileDetailView(APIView):
         if profile_serializer.data is None:
             profile_serializer.data =[]
         return Response([serializer.data,profile_serializer.data],status=status.HTTP_200_OK)
+
+class FarmerContractView(APIView):
+    permission_classes=[permissions.IsAuthenticated]
+    renderer_classes=[UserRenderer]
+
+    def get(self,request,*args,**kwargs):
+        contracts=Contract.objects.filter(farmer=request.user)
+        contract_farmer=[]
+        for contract in contracts:
+            deploy=ContractDeployment.objects.filter(contract=contract).first()
+            if not deploy.farmeragreed and not deploy.deploy_status:
+                contract_farmer.append(contract)
+        serializers=ContractDeliveryGet(contract_farmer,many=True)
+        return Response(serializers.data,status=status.HTTP_200_OK)
+        
+            

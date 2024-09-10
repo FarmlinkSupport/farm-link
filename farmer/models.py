@@ -6,7 +6,6 @@ class Farmer(models.Model):
     farm_name = models.CharField(max_length=255)
     farm_location = models.CharField(max_length=255)
     farm_size = models.DecimalField(max_digits=10, decimal_places=2)
-    
 
     def __str__(self):
         return f"Farmer: {self.user.name} - {self.farm_name}"
