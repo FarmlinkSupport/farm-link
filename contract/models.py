@@ -39,7 +39,7 @@ class ContractBlockchain(models.Model):
         return str(self.contract.id)
     
 class ContractDeployment(models.Model):
-    contract=models.OneToOneField(Contract,on_delete=models.SET_NULL,related_name='deploy_contract')
+    contract=models.OneToOneField(Contract,on_delete=models.CASCADE,related_name='deploy_contract')
     farmeragreed=models.BooleanField(default=False)
     buyeragreed=models.BooleanField(default=False)
     deploy_status=models.BooleanField(default=False)

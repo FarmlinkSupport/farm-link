@@ -44,15 +44,25 @@ class BuyerProfileDetailView(APIView):
         return Response([serializer.data,profile_serializer.data],status=status.HTTP_200_OK)
 
 class BuyerContractView(APIView):
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
-    def get(self,request,*args,**kwargs):
-        contractdep=Contract.objects.filter(buyer=request.user)
-        contract_buyer=[]
-        for con in contractdep:
-            contract=ContractDeployment.objects.get(contract=con)
-            if not contract.deploy_status and contract.farmeragreed==True:
-                contract_buyer.append(con)
-        serializer=ContractDeliveryGet(contract_buyer,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+    def get(self, request, *args, **kwargs):
+        try:
+            contractdep = Contract.objects.filter(buyer=request.user)
+            contract_buyer = []
+            for con in contractdep:
+                try:
+                    contract = ContractDeployment.objects.get(contract=con)
+                    if not contract.deploy_status and contract.farmeragreed and con.payment_status in ['Pending', 'Failed']:
+                        contract_buyer.append(con)
+                
+                except ContractDeployment.DoesNotExist:
+                    continue
+
+            serializer = ContractDeliveryGet(contract_buyer, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         
