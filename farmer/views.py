@@ -48,26 +48,22 @@ class FarmerContractView(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            # Get contracts where the user is a farmer
+            # Get all contracts where the user is the farmer
             contracts = Contract.objects.filter(farmer=request.user)
             contract_farmer = []
             
-            # Iterate through contracts and check deployment status
             for contract in contracts:
                 deploy = ContractDeployment.objects.filter(contract=contract).first()
                 
-                # Check if deploy exists and the farmer has not agreed and it's not deployed
                 if deploy and not deploy.farmeragreed and not deploy.deploy_status:
                     contract_farmer.append(contract)
             
-            # Serialize the filtered contracts
+            if not contract_farmer:
+                return Response({'message': 'No contracts found'}, status=status.HTTP_204_NO_CONTENT)
+            
             serializers = ContractDeliveryGet(contract_farmer, many=True)
             return Response(serializers.data, status=status.HTTP_200_OK)
         
         except Exception as e:
             # Catch any unexpected errors and return a 500 error with the exception message
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-        
-            

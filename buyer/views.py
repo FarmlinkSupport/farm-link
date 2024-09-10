@@ -7,6 +7,8 @@ from accounts.serializers import UserProfileSerializer
 from .models import Profile
 from accounts.models import User
 from rest_framework.generics import RetrieveAPIView
+from contract.models import Contract,ContractDeployment
+from contract.serializers import ContractDeliveryGet
 
 class BuyerProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -40,3 +42,17 @@ class BuyerProfileDetailView(APIView):
         if profile_serializer.data is None:
             profile_serializer.data =[]
         return Response([serializer.data,profile_serializer.data],status=status.HTTP_200_OK)
+
+class BuyerContractView(APIView):
+    permission_classes=[permissions.IsAuthenticated]
+
+    def get(self,request,*args,**kwargs):
+        contractdep=Contract.objects.filter(buyer=request.user)
+        contract_buyer=[]
+        for con in contractdep:
+            contract=ContractDeployment.objects.get(contract=con)
+            if not contract.deploy_status and contract.farmeragreed==True:
+                contract_buyer.append(con)
+        serializer=ContractDeliveryGet(contract_buyer,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+        
