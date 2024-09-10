@@ -10,3 +10,4 @@ class Farmer(models.Model):
 
     def __str__(self):
         return f"Farmer: {self.user.name} - {self.farm_name}"
+    
