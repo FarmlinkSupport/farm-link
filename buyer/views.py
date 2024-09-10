@@ -31,15 +31,12 @@ class BuyerProfileDetailView(APIView):
     renderer_classes = [UserRenderer]
     
     def get(self,request,user_id,*args,**kwargs):
-        try:
-            user = User.objects.get(id=user_id)
-            if user is None:
-                return Response('User not found',status=status.HTTP_404_NOT_FOUND)
-            serializer = UserProfileSerializer(user)
-            profile = Profile.objects.get(user=user)
-            profile_serializer = BuyerProfileSerializer(profile)
-            if profile_serializer.data is None:
-                profile_serializer.data =[]
-            return Response([serializer.data,profile_serializer.data],status=status.HTTP_200_OK)
-        except:
-            return Response('Buyer has no profile !!',status=status.HTTP_204_NO_CONTENT)
+        user = User.objects.get(id=user_id)
+        if user is None:
+            return Response('User not found',status=status.HTTP_404_NOT_FOUND)
+        serializer = UserProfileSerializer(user)
+        profile = Profile.objects.get(user=user)
+        profile_serializer = BuyerProfileSerializer(profile)
+        if profile_serializer.data is None:
+            profile_serializer.data =[]
+        return Response([serializer.data,profile_serializer.data],status=status.HTTP_200_OK)
