@@ -62,16 +62,19 @@ class ContractDeliveryStatusView(APIView):
             return Response(f'Payment has not been yet for the contract id : {id}',status=status.HTTP_402_PAYMENT_REQUIRED)
         
     def get(self,request,id,*args,**kwargs):
-        contract=Contract.objects.get(id=id)
-        if contract is None:
-            return Response({'msg':"Contract doesn't exists!!"},status=status.HTTP_404_NOT_FOUND)
-        if request.user == contract.farmer or request.user == contract.buyer:
-            delivery = ContractDeliveryStatus.objects.filter(contract=contract).first()
-            if delivery is None:
-                return Response({'msg':"Contract delivery data doesn't exists!!"},status=status.HTTP_404_NOT_FOUND)
-            serializer=ContractDeliveryGet(delivery)
-            return Response(serializer.data,status=status.HTTP_200_OK)
-        return Response("User is not authorized to get the data",status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            if request.path !="/favicon.ico":
+                contract=Contract.objects.get(id=id)
+                if contract is None:
+                    return Response({'msg':"Contract doesn't exists!!"},status=status.HTTP_404_NOT_FOUND)
+                if request.user == contract.farmer or request.user == contract.buyer:
+                    delivery = ContractDeliveryStatus.objects.filter(contract=contract).first()
+                    if delivery is None:
+                        return Response({'msg':"Contract delivery data doesn't exists!!"},status=status.HTTP_404_NOT_FOUND)
+                    serializer=ContractDeliveryGet(delivery)
+                    return Response(serializer.data,status=status.HTTP_200_OK)
+        except:
+            return Response("User is not authorized to get the data",status=status.HTTP_401_UNAUTHORIZED)
 
 
 class ContractGetView(APIView):
@@ -79,8 +82,12 @@ class ContractGetView(APIView):
     renderer_classes=[UserRenderer]
     
     def get(self,request,*args,**kwargs):
-        contract=Contract.objects.filter(Q(buyer=request.user) | Q(farmer=request.user))
-        if contract is None:
-            return Response("User doesn't have any Contract!",status=status.HTTP_204_NO_CONTENT)
-        serializer=ContractSerilaizer(contract,many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        try:
+            if request.path != "/favicon.ico":
+                contract=Contract.objects.filter(Q(buyer=request.user) | Q(farmer=request.user))
+                if contract is None:
+                    return Response("User doesn't have any Contract!",status=status.HTTP_204_NO_CONTENT)
+                serializer=ContractSerilaizer(contract,many=True)
+                return Response(serializer.data,status=status.HTTP_200_OK)
+        except:
+            return Response('User has no contract !!',status=status.HTTP_204_NO_CONTENT)

@@ -19,22 +19,27 @@ class BuyerProfileView(APIView):
         return Response({"message": "Buyer profile created!"}, status=status.HTTP_201_CREATED)
     
     def get(self, request, *args, **kwargs):
-        buyer_profile = Profile.objects.get(user=request.user)
-        serializer = BuyerProfileSerializer(buyer_profile)
-        user_serializer = UserProfileSerializer(request.user)
-        return Response({'user': user_serializer.data, 'profile': serializer.data}, status=status.HTTP_200_OK)
+        if request.path != "favicon.ico":
+            buyer_profile = Profile.objects.get(user=request.user)
+            serializer = BuyerProfileSerializer(buyer_profile)
+            user_serializer = UserProfileSerializer(request.user)
+            return Response({'user': user_serializer.data, 'profile': serializer.data}, status=status.HTTP_200_OK)
+        return Response('Buyer has no profile',status=status.HTTP_204_NO_CONTENT)
 
 class BuyerProfileDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     renderer_classes = [UserRenderer]
     
     def get(self,request,user_id,*args,**kwargs):
-        user = User.objects.get(id=user_id)
-        if user is None:
-            return Response('User not found',status=status.HTTP_404_NOT_FOUND)
-        serializer = UserProfileSerializer(user)
-        profile = Profile.objects.get(user=user)
-        profile_serializer = BuyerProfileSerializer(profile)
-        if profile_serializer.data is None:
-            profile_serializer.data =[]
-        return Response([serializer.data,profile_serializer.data],status=status.HTTP_200_OK)
+        try:
+            user = User.objects.get(id=user_id)
+            if user is None:
+                return Response('User not found',status=status.HTTP_404_NOT_FOUND)
+            serializer = UserProfileSerializer(user)
+            profile = Profile.objects.get(user=user)
+            profile_serializer = BuyerProfileSerializer(profile)
+            if profile_serializer.data is None:
+                profile_serializer.data =[]
+            return Response([serializer.data,profile_serializer.data],status=status.HTTP_200_OK)
+        except:
+            return Response('Buyer has no profile !!',status=status.HTTP_204_NO_CONTENT)
