@@ -17,7 +17,7 @@ class DraftCreateListView(views.APIView):
         serializer=DraftSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         tender_id=self.kwargs['tender_id']
-        draft=serializer.save(tender_id=tender_id,user=request.user)
+        draft=serializer.save(tender_id=tender_id,user=request.user.id)
         return Response(draft,status=status.HTTP_201_CREATED)
     
     def get(self,request,*args,**kwargs):

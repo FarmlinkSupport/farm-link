@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Draft
 from .models import Tender
+from accounts.models import User
 
 class DraftSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,7 +13,8 @@ class DraftSerializer(serializers.ModelSerializer):
         tender=Tender.objects.get(id=tender_id)
         if tender is None:
             return serializers.ValidationError('Tender id is incorrect please check !!')
-        farmer=validated_data.pop('user')
+        user = validated_data.pop('user')
+        farmer=User.objects.get(id=user)
         return Draft.objects.create(farmer=farmer,tender=tender,**validated_data)
     
 class DraftGetSerializer(serializers.ModelSerializer):
