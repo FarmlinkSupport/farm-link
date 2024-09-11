@@ -51,8 +51,8 @@ class PaymentCheckoutView(APIView):
                         "contract_id": contract.id
                     },
                     mode='payment',
-                    success_url=settings.PAYMENT_SITE_URL + f'payment/sucess/{contract.id}/',
-                    cancel_url=settings.PAYMENT_SITE_URL + f'payment/cancel/',
+                    success_url=settings.PAYMENT_SITE_URL + f'sucess/{contract.id}/',
+                    cancel_url=settings.PAYMENT_SITE_URL + f'cancel/{contract.id}/',
                 )
                 return response.Response({'url': checkout_session.url}, status=status.HTTP_200_OK)
             else:

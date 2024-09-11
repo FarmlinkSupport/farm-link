@@ -178,7 +178,7 @@ STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_KEY = os.environ.get('STRIPE_WEBHOOK_KEY')
 
 # Custom payment site URL
-PAYMENT_SITE_URL = 'http://127.0.0.1:5500/'
+PAYMENT_SITE_URL = 'http://localhost:5173/payment/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
