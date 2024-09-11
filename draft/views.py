@@ -15,14 +15,17 @@ class DraftCreateListView(views.APIView):
         if request.user.role != 1:
             return HttpResponse('You are not authorized to view this page content', status=403)
 
-        tender_id = self.kwargs.get('tender_id')
+        print(request.data)  # Debugging line to check the received data
         serializer = DraftSerializer(data=request.data)
 
         if serializer.is_valid():
+            tender_id = self.kwargs.get('tender_id')
             serializer.save(tender_id=tender_id, user=request.user.id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+        print(serializer.errors)  # Debugging line to see validation errors
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     
     def get(self,request,*args,**kwargs):
         id=self.kwargs['tender_id']
