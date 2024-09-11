@@ -67,31 +67,53 @@ class PaymentCheckoutView(APIView):
 
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @csrf_exempt
 def stripe_webhook_view(request):
     payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-    event = None
- 
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
+
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.STRIPE_WEBHOOK_KEY
         )
     except ValueError as e:
+        logger.error(f"Invalid payload: {e}")
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
+        logger.error(f"Invalid signature: {e}")
         return HttpResponse(status=400)
 
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         customer_email = session["customer_details"]["email"]
-        id=session["metadata"]["contract_id"]
-        contract=Contract.objects.get(id=id)
-        contract.payment_status="Buyer Paid"
+        id = session["metadata"].get("contract_id")
+
+        try:
+            contract = Contract.objects.get(id=id)
+        except Contract.DoesNotExist:
+            logger.error(f"Contract with ID {id} not found")
+            return HttpResponse("Contract not found", status=404)
+
+        contract.payment_status = "Buyer Paid"
         contract.save()
-        payment=Payment.objects.create(contract=contract,payment_intent_id=session["payment_intent"],payment_method_type=session['payment_method_types'][0])
-        payment.save()
-        send_mail(
+
+        try:
+            payment = Payment.objects.create(
+                contract=contract,
+                payment_intent_id=session.get("payment_intent"),
+                payment_method_type=session.get('payment_method_types', [])[0]
+            )
+            payment.save()
+        except Exception as e:
+            logger.error(f"Error saving payment: {e}")
+            return HttpResponse("Error saving payment", status=500)
+
+        try:
+            send_mail(
                 subject="Contract Payment Successful",
                 message=f"Dear {contract.buyer.name},\n\n"
                         f"Thank you for your payment. Your contract (ID: {contract.contract_id}) has been successfully deployed.\n"
@@ -103,5 +125,8 @@ def stripe_webhook_view(request):
                 recipient_list=[customer_email],
                 fail_silently=False,
             )
- 
+        except Exception as e:
+            logger.error(f"Error sending email: {e}")
+            return HttpResponse("Error sending email", status=500)
+
     return HttpResponse(status=200)
