@@ -8,17 +8,21 @@ from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 
 class DraftCreateListView(views.APIView):
-    permission_classes=[permissions.IsAuthenticated]
-    renderer_classes=[UserRenderer]
+    permission_classes = [permissions.IsAuthenticated]
+    renderer_classes = [UserRenderer]
 
-    def post(self,request,*args,**kwargs):
-        if request.user.role !=1:
-            return HttpResponse('You are not authorized to view this page content')
-        serializer=DraftSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        tender_id=self.kwargs['tender_id']
-        draft=serializer.save(tender_id=tender_id,user=request.user.id)
-        return Response(draft,status=status.HTTP_201_CREATED)
+    def post(self, request, *args, **kwargs):
+        if request.user.role != 1:
+            return HttpResponse('You are not authorized to view this page content', status=403)
+
+        tender_id = self.kwargs.get('tender_id')
+        serializer = DraftSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(tender_id=tender_id, user=request.user.id)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def get(self,request,*args,**kwargs):
         id=self.kwargs['tender_id']
