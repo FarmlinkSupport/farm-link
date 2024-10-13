@@ -27,13 +27,15 @@ class UserRegistrationView(APIView):
 
 class UserLoginView(APIView):
     renderer_classes = [UserRenderer]
+
     def post(self, request, format=None):
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.data.get('email')
         password = serializer.data.get('password')
+        role = serializer.data.get('role')
         user = authenticate(email=email, password=password)
-        if user is not None:
+        if user is not None and user.role == role:
             token = get_tokens_for_user(user)
             login(request,user)
             return Response({'token':token, 'user':request.user.name, 'msg':'Login Success'}, status=status.HTTP_200_OK)

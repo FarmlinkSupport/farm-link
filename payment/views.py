@@ -40,7 +40,7 @@ class PaymentCheckoutView(APIView):
                                 'unit_amount': contract_value_in_cents,
                                 'product_data': {
                                     'name': tender.title,
-                                    'description': f'{tender.description}  {tender.notice_file}\n'
+                                    'description': f'{tender.description}\n'
                                                 f'{contract.start_date}\n{contract.end_date}'
                                 }
                             },

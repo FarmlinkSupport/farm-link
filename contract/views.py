@@ -9,7 +9,16 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from payment.models import Payment
 import stripe
+from tender.models import Tender
+from accounts.models import User
+from payment.models import Payment
+from tender.serializers import TenderSerializer
+from accounts.serializers import UserProfileSerializer
+from payment.serializers import PaymentSerializer
 
+"""
+Contract Delivery Status reporting if the payment is succesfull the contract delivery status is available
+"""
 class ContractDeliveryStatusView(APIView):
     permission_classes=[permissions.IsAuthenticated]
     renderer_classes=[UserRenderer]
@@ -77,6 +86,9 @@ class ContractDeliveryStatusView(APIView):
             return Response("User is not authorized to get the data",status=status.HTTP_401_UNAUTHORIZED)
 
 
+"""
+Not Official it has been implement in another server!!!
+"""
 class ContractGetView(APIView):
     permission_classes=[permissions.IsAuthenticated]
     renderer_classes=[UserRenderer]
@@ -92,6 +104,10 @@ class ContractGetView(APIView):
         except:
             return Response('User has no contract !!',status=status.HTTP_204_NO_CONTENT)
 
+
+"""
+Contract termination...
+"""
 class ContractDeclineView(APIView):
     permission_classes=[permissions.IsAuthenticated]
 
@@ -101,3 +117,23 @@ class ContractDeclineView(APIView):
             contract.status="Terminated"
             contract.save()
             return Response('Contract has been declined successfully',status=status.HTTP_202_ACCEPTED)
+
+"""
+All Details of a particular contract!!
+"""
+class ContractDetails(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self,request,id,*args,**kwargs):
+        contract = Contract.objects.filter(id=id).first()
+        if contract is None:
+            return Response({'error':'Contract Id doesn\'t exist please check!!'},status=status.HTTP_404_NOT_FOUND)
+        if request.user == contract.farmer or request.user == contract.buyer:
+            tender = TenderSerializer(Tender.objects.get(id=contract.tender.id))
+            farmer = UserProfileSerializer(User.objects.get(id=contract.farmer.id))
+            buyer = UserProfileSerializer(User.objects.get(id=contract.buyer.id))
+            delivery = ContractDeliveryGet(ContractDeliveryStatus.objects.filter(contract=contract).first())
+            payment = PaymentSerializer(Payment.objects.filter(contract=contract).first())
+            contract = ContractSerilaizer(contract)
+            return Response({'data':[contract.data,tender.data,farmer.data,buyer.data,delivery.data,payment.data]},status=status.HTTP_200_OK)
+        return Response({"error":"User is not allowed to make the api call!!"},status=status.HTTP_403_FORBIDDEN)

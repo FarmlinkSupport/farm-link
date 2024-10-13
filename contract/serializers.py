@@ -22,7 +22,6 @@ class ContractDeliverySerializerStatus(serializers.ModelSerializer):
         model = ContractDeliveryStatus
         fields = ['status']
 
-from rest_framework import serializers
 
 class ContractDeliveryGet(serializers.ModelSerializer):
     class Meta:
