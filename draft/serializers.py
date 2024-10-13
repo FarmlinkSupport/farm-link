@@ -26,9 +26,18 @@ class DraftSerializer(serializers.ModelSerializer):
         return draft
     
 class DraftGetSerializer(serializers.ModelSerializer):
+    tender_title = serializers.SerializerMethodField()
+    farmer_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Draft
-        fields = '__all__'
+        fields = ['id','farmer','farmer_name','tender','tender_title','status','draftfile','timestamp']
+
+    def get_tender_title(self,obj):
+        return obj.tender.title
+    
+    def get_farmer_name(self,obj):
+        return obj.farmer.name
 
 class DraftUpdateBuyerSerializer(serializers.ModelSerializer):
     class Meta:
