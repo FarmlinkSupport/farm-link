@@ -42,28 +42,3 @@ class FarmerProfileDetailView(APIView):
             profile_serializer.data =[]
         return Response([serializer.data,profile_serializer.data],status=status.HTTP_200_OK)
 
-class FarmerContractView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    renderer_classes = [UserRenderer]
-
-    def get(self, request, *args, **kwargs):
-        try:
-            # Get all contracts where the user is the farmer
-            contracts = Contract.objects.filter(farmer=request.user)
-            contract_farmer = []
-            
-            for contract in contracts:
-                deploy = ContractDeployment.objects.filter(contract=contract).first()
-                
-                if deploy and not deploy.farmeragreed and not deploy.deploy_status:
-                    contract_farmer.append(contract)
-            
-            if not contract_farmer:
-                return Response({'message': 'No contracts found'}, status=status.HTTP_204_NO_CONTENT)
-            
-            serializers = ContractDeliveryGet(contract_farmer, many=True)
-            return Response(serializers.data, status=status.HTTP_200_OK)
-        
-        except Exception as e:
-            # Catch any unexpected errors and return a 500 error with the exception message
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -2,10 +2,22 @@ from rest_framework import serializers
 from .models import Contract,ContractDeliveryStatus
 
 class ContractSerilaizer(serializers.ModelSerializer):
+    farmer_name = serializers.SerializerMethodField()
+    buyer_name = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+
     class Meta:
         model = Contract
-        fields = '__all__'
+        fields = ['id', 'title', 'farmer_name', 'buyer_name', 'status', 'payment_status']
+
+    def get_farmer_name(self,obj):
+        return obj.farmer.name
     
+    def get_buyer_name(self,obj):
+        return obj.buyer.name
+    
+    def get_title(self,obj):
+        return obj.tender.title
 
 class ContractDeliverySerializer(serializers.ModelSerializer):
     class Meta:
