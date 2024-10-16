@@ -1,3 +1,6 @@
 [submodule "FarmLink_ui"]
 	path = FarmLink_ui
 	url = https://github.com/FarmlinkSupport/FarmLink_ui.git
+[submodule "FarmLinkBc"]
+	path = FarmLinkBc
+	url = https://github.com/Vijay8426/FarmLinkBc.git
