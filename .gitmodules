@@ -1,0 +1,3 @@
+[submodule "FarmLink_ui"]
+	path = FarmLink_ui
+	url = https://github.com/FarmlinkSupport/FarmLink_ui.git
